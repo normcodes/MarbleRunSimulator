@@ -1,4 +1,4 @@
-# Marble Run Simulator — made by Norm
+# Marble Run Simulator 
 
 ## Implementation Blueprint
 
@@ -6,7 +6,7 @@
 
 ## 1. Product concept
 
-**Marble Run Simulator — made by Norm** is a visual construction editor and physics simulator. Users assemble a marble run by dragging parts from a left-hand toolbox onto a central canvas. A right-hand inspector provides Unity-like object settings. The editor supports three explicit layers, with each layer controlling object behavior rather than merely controlling visual order.
+**Marble Run Simulator** is a visual construction editor and physics simulator. Users assemble a marble run by dragging parts from a left-hand toolbox onto a central canvas. A right-hand inspector provides Unity-like object settings. The editor supports three explicit layers, with each layer controlling object behavior rather than merely controlling visual order.
 
 The experience should feel like a compact game editor: users build in edit mode, press Play to release marbles, adjust mechanisms while paused, and save complete marble runs to their account. A run contains the complete scene, including objects, transforms, layer assignments, connections, spawn settings, race settings, and simulation configuration.
 
@@ -278,7 +278,7 @@ It must also be possible to configure a Start Zone with maximum marble spawn and
 
 ## 18. Product summary
 
-**Marble Run Simulator — made by Norm** should be built as an HTML/CSS/JavaScript application with a true editor-style workflow. The critical design principle is that layers define physical behavior: Layer 1 is the structural run, Layer 2 is the marble-like dynamic layer, and Layer 3 contains mechanisms that interact with marbles without colliding with the main structure. Welds connect objects only, while Anchors attach objects to the background. Every object remains editable through the right-click inspector, and every complete run is saved as owned project data accessible from the user dashboard.
+**Marble Run Simulator** should be built as an HTML/CSS/JavaScript application with a true editor-style workflow. The critical design principle is that layers define physical behavior: Layer 1 is the structural run, Layer 2 is the marble-like dynamic layer, and Layer 3 contains mechanisms that interact with marbles without colliding with the main structure. Welds connect objects only, while Anchors attach objects to the background. Every object remains editable through the right-click inspector, and every complete run is saved as owned project data accessible from the user dashboard.
 
 ### References
 
