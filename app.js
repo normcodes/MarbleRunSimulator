@@ -111,6 +111,7 @@ const state = {
   pointer: null,
   drag: null,
   toastTimer: null,
+  savedAt: null,
   scene: {
     gravity: 720,
     bounce: 0.56,
@@ -205,20 +206,23 @@ function seedScene() {
   state.objects.find((object) => object.type === "start").anchored = true;
 }
 
+const STORAGE_KEY = "marble-run-simulator";
+
 function snapshot() {
   return JSON.stringify({
+    version: 2,
     objectId: state.objectId,
     objects: state.objects,
     welds: state.welds,
     scene: state.scene,
   });
 }
-
 function restoreSnapshot(serialized) {
-  const saved = JSON.parse(serialized);
-  state.objectId = saved.objectId;
-  state.objects = saved.objects;
-  state.welds = saved.welds || [];
+  const saved = typeof serialized === "string" ? JSON.parse(serialized) : serialized;
+  if (!saved || !Array.isArray(saved.objects) || !saved.scene) throw new Error("Saved run is incomplete");
+  state.objectId = Number.isFinite(saved.objectId) ? saved.objectId : Math.max(1, ...saved.objects.map((object) => object.id + 1));
+  state.objects = saved.objects.map((object) => ({ ...object }));
+  state.welds = Array.isArray(saved.welds) ? saved.welds.map((weld) => ({ ...weld })) : [];
   state.scene = { ...state.scene, ...saved.scene };
   state.selectedId = null;
   state.marbles = [];
@@ -1358,21 +1362,79 @@ function setMode(nextMode) {
   renderCanvas();
 }
 
-function saveRun() {
-  localStorage.setItem("marble-run-simulator", JSON.stringify({ objectId: state.objectId, objects: state.objects, welds: state.welds, scene: state.scene }));
-  showToast("Run saved to this browser");
-  setStatus("Saved · scene and settings serialized");
+function formatSavedAt(iso) {
+  if (!iso) return "Not saved";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "Not saved";
+  return `Saved ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 }
-
+function updateSaveStatus(text = formatSavedAt(state.savedAt)) {
+  const element = document.querySelector("#save-status");
+  if (element) element.textContent = text;
+}
+function readSavedRun() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const saved = JSON.parse(raw);
+    return saved?.version === 2 ? saved : null;
+  } catch (error) {
+    console.warn("Saved run could not be read", error);
+    return null;
+  }
+}
+function saveRun() {
+  const savedAt = new Date().toISOString();
+  const payload = {
+    version: 2,
+    savedAt,
+    objectId: state.objectId,
+    objects: state.objects,
+    welds: state.welds,
+    scene: state.scene,
+  };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    state.savedAt = savedAt;
+    updateSaveStatus();
+    showToast("Run saved to this browser");
+    setStatus(`Saved · ${state.objects.length} objects and scene settings stored`);
+  } catch (error) {
+    showToast("This browser blocked local saving");
+    setStatus("Save failed · browser storage is unavailable");
+  }
+}
 function loadRun() {
-  const saved = localStorage.getItem("marble-run-simulator");
+  const saved = readSavedRun();
   if (!saved) {
-    showToast("No saved run yet");
+    showToast("No compatible saved run yet");
+    setStatus("Nothing to load · save this run first");
     return;
   }
-  restoreSnapshot(saved);
-  showToast("Saved run loaded");
-  setStatus("Loaded · scene restored");
+  try {
+    recordHistory();
+    restoreSnapshot(saved);
+    state.savedAt = saved.savedAt || null;
+    updateSaveStatus();
+    showToast("Saved run loaded");
+    setStatus("Loaded · scene restored from this browser");
+  } catch (error) {
+    showToast("Saved run could not be loaded");
+    setStatus("Load failed · saved scene is invalid");
+  }
+}
+function loadSavedRunOnBoot() {
+  const saved = readSavedRun();
+  if (!saved) return false;
+  try {
+    restoreSnapshot(saved);
+    state.savedAt = saved.savedAt || null;
+    updateSaveStatus();
+    return true;
+  } catch (error) {
+    localStorage.removeItem(STORAGE_KEY);
+    return false;
+  }
 }
 
 function changeZoom(direction) {
@@ -1468,6 +1530,7 @@ window.addEventListener("pointerup", handlePointerUp);
 window.addEventListener("resize", resizeCanvas);
 window.addEventListener("keydown", handleKeyboard);
 
+loadSavedRunOnBoot();
 renderCatalog();
 renderLayers();
 updateActiveLayer();

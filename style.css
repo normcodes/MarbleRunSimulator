@@ -267,6 +267,14 @@ button:active {
   background: #ffd878;
 }
 
+.save-status {
+  min-width: 64px;
+  color: var(--muted);
+  font: 600 9px "IBM Plex Mono", monospace;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
 .vertical-line {
   width: 1px;
   height: 21px;
