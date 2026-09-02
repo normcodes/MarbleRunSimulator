@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#111821">
+  <meta name="description" content="A compact marble-run construction editor and physics playground.">
   <title>Marble Run Simulator</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
-      <div class="brand-mark" aria-hidden="true">◉</div>
+      <div class="brand-mark" aria-hidden="true"><span></span><i></i></div>
       <div>
         <div class="brand-title">MARBLE RUN SIMULATOR</div>
         <div class="brand-sub">made by Norm · engineering playground</div>
@@ -20,16 +21,16 @@
     <div class="run-name">
       <span class="eyebrow">CURRENT RUN</span>
       <strong>Spiral Study 01</strong>
-      <span>⌄</span>
+      <span class="chevron">⌄</span>
     </div>
 
     <div class="top-actions">
-      <button class="icon-button" id="undo-button" title="Undo">↶</button>
-      <button class="icon-button" title="Redo">↷</button>
+      <button class="icon-button" id="undo-button" title="Undo" aria-label="Undo"><span class="ui-icon" data-icon="undo"></span></button>
+      <button class="icon-button" id="redo-button" title="Redo" aria-label="Redo"><span class="ui-icon" data-icon="redo"></span></button>
       <span class="vertical-line"></span>
-      <button class="secondary-button" id="load-button">⇩ Load</button>
-      <button class="primary-button" id="save-button">▣ Save run</button>
-      <button class="account-button">◉ normcodes</button>
+      <button class="secondary-button" id="load-button"><span class="ui-icon" data-icon="load"></span>Load</button>
+      <button class="primary-button" id="save-button"><span class="ui-icon" data-icon="save"></span>Save run</button>
+      <button class="account-button"><span class="user-dot"></span>normcodes</button>
     </div>
   </header>
 
@@ -40,7 +41,7 @@
           <span class="eyebrow">BUILD KIT</span>
           <h2>Toolbox</h2>
         </div>
-        <button class="icon-button">⌕</button>
+        <button class="icon-button compact" id="catalog-focus" title="Focus catalog" aria-label="Focus catalog"><span class="ui-icon" data-icon="search"></span></button>
       </div>
 
       <div class="tabs" id="category-tabs">
@@ -50,21 +51,21 @@
       </div>
 
       <label class="search-box">
-        <span>⌕</span>
-        <input id="catalog-search" type="search" placeholder="Search catalog">
+        <span class="ui-icon" data-icon="search"></span>
+        <input id="catalog-search" type="search" placeholder="Search catalog" autocomplete="off">
       </label>
 
       <div class="catalog" id="catalog"></div>
 
       <section class="layers-section">
-        <div class="section-title">▥ LAYERS <span>3</span></div>
+        <div class="section-title"><span class="ui-icon" data-icon="layers"></span>LAYERS <span class="layer-count">3</span></div>
         <div id="layers"></div>
       </section>
 
       <div class="left-footer">
         <span class="status-dot"></span>
         <span>Autosave on</span>
-        <button class="help-button">?</button>
+        <button class="help-button" id="help-button" title="Editor help">?</button>
       </div>
     </aside>
 
@@ -72,49 +73,52 @@
       <div class="canvas-toolbar">
         <div class="mode-switch">
           <button class="mode active" data-mode="Edit">Edit</button>
-          <button class="mode play" data-mode="Play"><span class="play-dot"></span>Play</button>
-          <button class="mode paused" data-mode="Paused">Paused</button>
+          <button class="mode play" data-mode="Play"><span class="ui-icon" data-icon="play"></span>Play</button>
+          <button class="mode paused" data-mode="Paused"><span class="ui-icon" data-icon="pause"></span>Paused</button>
         </div>
         <div class="canvas-actions">
-          <span class="coord-label">GRID 16 PX</span>
-          <button class="icon-button">−</button>
-          <span class="zoom-label">100%</span>
-          <button class="icon-button">＋</button>
-          <button class="icon-button">⛶</button>
+          <span class="coord-label"><span class="ui-icon" data-icon="grid"></span>GRID 16 PX</span>
+          <button class="icon-button" data-zoom="out" title="Zoom out" aria-label="Zoom out"><span class="ui-icon" data-icon="minus"></span></button>
+          <span class="zoom-label" id="zoom-label">100%</span>
+          <button class="icon-button" data-zoom="in" title="Zoom in" aria-label="Zoom in"><span class="ui-icon" data-icon="plus"></span></button>
+          <button class="icon-button" id="fullscreen-button" title="Fullscreen" aria-label="Fullscreen"><span class="ui-icon" data-icon="expand"></span></button>
         </div>
       </div>
 
-      <div class="canvas-wrap">
+      <div class="canvas-wrap" id="canvas-wrap">
         <canvas id="simulation-canvas"></canvas>
         <div class="canvas-label canvas-label-top"><span class="signal-dot"></span> SIMULATION CANVAS <span class="slash">/</span> <span id="canvas-mode-label">EDIT</span></div>
         <div class="canvas-label canvas-label-bottom">X 000 — 960 <span class="slash">/</span> Y 000 — 620</div>
         <div class="race-hud">
           <div><span class="eyebrow">RACE TIMER</span><strong id="race-time">0.0s</strong></div>
           <div><span class="eyebrow">MARBLES</span><strong id="marble-count">00</strong></div>
-          <div><span class="eyebrow">FINISHED</span><strong>00</strong></div>
+          <div><span class="eyebrow">FINISHED</span><strong id="finished-count">00</strong></div>
         </div>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
       </div>
 
       <div class="stage-status">
-        <span><span class="status-dot amber"></span><span id="canvas-status">Canvas ready · snap 16 px</span></span>
+        <span><span class="status-dot amber"></span><span id="canvas-status">Canvas ready · drag or select a part</span></span>
         <span><span id="object-count">0</span> objects <span class="slash">/</span> <span id="body-count">0</span> bodies</span>
       </div>
     </section>
 
     <aside class="right-panel" aria-label="Tools and object inspector">
       <div class="tool-rail" id="tool-rail">
-        <button class="tool active" data-tool="select" title="Select">⌖</button>
-        <button class="tool" data-tool="move" title="Move">✥</button>
-        <button class="tool" data-tool="scale" title="Scale">⤢</button>
-        <button class="tool" data-tool="rotate" title="Rotate">⟳</button>
-        <button class="tool" data-tool="connect" title="Connect">⌘</button>
-        <button class="tool delete-tool" data-tool="delete" title="Delete">⌫</button>
+        <button class="tool active" data-tool="select" title="Select (V)" aria-label="Select"><span class="ui-icon" data-icon="select"></span></button>
+        <button class="tool" data-tool="move" title="Move (M)" aria-label="Move"><span class="ui-icon" data-icon="move"></span></button>
+        <button class="tool" data-tool="scale" title="Scale (S)" aria-label="Scale"><span class="ui-icon" data-icon="scale"></span></button>
+        <button class="tool" data-tool="rotate" title="Rotate (R) · 5° snap" aria-label="Rotate"><span class="ui-icon" data-icon="rotate"></span></button>
+        <span class="rail-rule"></span>
+        <button class="tool" data-tool="weld" title="Weld selected parts (W)" aria-label="Weld"><span class="ui-icon" data-icon="weld"></span></button>
+        <button class="tool" data-tool="anchor" title="Anchor selected part (A)" aria-label="Anchor"><span class="ui-icon" data-icon="anchor"></span></button>
+        <button class="tool delete-tool" data-tool="delete" title="Delete (Backspace)" aria-label="Delete"><span class="ui-icon" data-icon="delete"></span></button>
       </div>
 
       <div class="inspector">
         <div class="inspector-tabs">
-          <button class="active">Inspector</button>
-          <button>Scene settings</button>
+          <button class="active" data-inspector-tab="inspector">Inspector</button>
+          <button data-inspector-tab="scene">Scene settings</button>
         </div>
         <div class="inspector-content" id="inspector-content"></div>
       </div>

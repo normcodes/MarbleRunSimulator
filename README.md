@@ -283,3 +283,8 @@ It must also be possible to configure a Start Zone with maximum marble spawn and
 ### References
 
 No external references were required for this product blueprint; the specification is based on the requested behavior and product requirements.
+
+
+## Icon attribution
+
+The editor uses selected line icons from [coolicons](https://github.com/krystonschwarze/coolicons) by Kryston Schwarze, from the free icon set shared under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
